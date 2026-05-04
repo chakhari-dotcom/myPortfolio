@@ -1,0 +1,236 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - Fatma Chakhari</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css">
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-gradient">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{% url 'home' %}"><i class="bi bi-code-slash me-2"></i>Fatma Chakhari</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#projects">Projects</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#about">About</a></li>
+                <li class="nav-item"><a class="nav-link active" href="{% url 'contact' %}">Contact</a></li>
+            </ul>
+            <button class="theme-toggle ms-3" onclick="toggleTheme()" title="Toggle Dark Mode">
+                <i class="bi bi-moon-fill" id="theme-icon"></i>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- Contact Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center mb-5">
+                    <h2 class="fw-bold"><i class="bi bi-envelope-fill text-primary me-2"></i>Get In Touch</h2>
+                    <p class="text-muted">Have a question or want to work together? Fill out the form below and I'll get back to you as soon as possible.</p>
+                </div>
+                
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4 p-lg-5">
+                        {% if messages %}
+                        <div class="alert alert-success" role="alert">
+                            {% for message in messages %}
+                            <i class="bi bi-check-circle me-2"></i>{{ message }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <form method="post" action="{% url 'contact' %}">
+                            {% csrf_token %}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="id_name" class="form-label fw-semibold">Your Name *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                                        <input type="text" class="form-control" id="id_name" name="name" placeholder="John Doe" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_email" class="form-label fw-semibold">Email Address *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+                                        <input type="email" class="form-control" id="id_email" name="email" placeholder="john@example.com" required>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label for="id_subject" class="form-label fw-semibold">Subject *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="bi bi-chat-left-text"></i></span>
+                                        <input type="text" class="form-control" id="id_subject" name="subject" placeholder="Project Inquiry / Job Opportunity / Question" required>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label for="id_message" class="form-label fw-semibold">Message *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light align-items-start pt-3"><i class="bi bi-chat-dots"></i></span>
+                                        <textarea class="form-control" id="id_message" name="message" rows="6" placeholder="Tell me about your project, job opportunity, or any questions you have..." required></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label for="id_company" class="form-label fw-semibold">Company (Optional)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="bi bi-building"></i></span>
+                                        <input type="text" class="form-control" id="id_company" name="company" placeholder="Your Company Name">
+                                    </div>
+                                </div>
+                                <div class="col-12 mt-4">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100 shadow">
+                                        <i class="bi bi-send me-2"></i>Send Message
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Alternative Contact Info -->
+                <div class="row g-4 mt-4">
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 text-center">
+                            <div class="card-body">
+                                <div class="icon-box bg-primary bg-gradient rounded-3 d-inline-flex mb-3">
+                                    <i class="bi bi-envelope text-white fs-4"></i>
+                                </div>
+                                <h5 class="fw-bold">Email</h5>
+                                <p class="text-muted mb-0"><a href="https://mail.google.com/mail/u/2/#inbox" target="_blank" class="text-decoration-none">fatmaa.chakhari@gmail.com</a></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 text-center">
+                            <div class="card-body">
+                                <div class="icon-box bg-success bg-gradient rounded-3 d-inline-flex mb-3">
+                                    <i class="bi bi-linkedin text-white fs-4"></i>
+                                </div>
+                                <h5 class="fw-bold">LinkedIn</h5>
+                                <p class="text-muted mb-0"><a href="https://www.linkedin.com/in/fatma-chakhari" target="_blank" class="text-decoration-none">fatma-chakhari</a></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 text-center">
+                            <div class="card-body">
+                                <div class="icon-box bg-dark bg-gradient rounded-3 d-inline-flex mb-3">
+                                    <i class="bi bi-github text-white fs-4"></i>
+                                </div>
+                                <h5 class="fw-bold">GitHub</h5>
+                                <p class="text-muted mb-0"><a href="https://github.com/chakhari-dotcom" target="_blank" class="text-decoration-none">chakhari-dotcom</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-5">
+                    <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-dark text-white py-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h5 class="fw-bold">Fatma Chakhari</h5>
+                <p class="text-muted mb-0">Software Engineering Student at Polytechnique Sousse</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div class="d-inline-block">
+                    <a href="https://github.com/chakhari-dotcom" target="_blank" class="btn btn-outline-light rounded-circle btn-social">
+                        <i class="bi bi-github"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/in/fatma-chakhari" target="_blank" class="btn btn-outline-light rounded-circle btn-social">
+                        <i class="bi bi-linkedin"></i>
+                    </a>
+                    <a href="https://x.com/FatmaChakhari" target="_blank" class="btn btn-outline-light rounded-circle btn-social">
+                        <i class="bi bi-twitter-x"></i>
+                    </a>
+                </div>
+                <p class="small text-muted mt-2 mb-0">&copy; 2026 Fatma Chakhari. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Theme Toggle Functionality
+    function toggleTheme() {
+        const html = document.documentElement;
+        const icon = document.getElementById('theme-icon');
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        html.setAttribute('data-theme', newTheme);
+        
+        if (newTheme === 'dark') {
+            icon.classList.remove('bi-moon-fill');
+            icon.classList.add('bi-sun-fill');
+        } else {
+            icon.classList.remove('bi-sun-fill');
+            icon.classList.add('bi-moon-fill');
+        }
+        
+        localStorage.setItem('theme', newTheme);
+        applyTheme(newTheme);
+    }
+
+    function applyTheme(theme) {
+        const root = document.documentElement;
+        if (theme === 'dark') {
+            root.style.setProperty('--bg-primary', '#0f172a');
+            root.style.setProperty('--bg-secondary', '#1e293b');
+            root.style.setProperty('--bg-card', '#1e293b');
+            root.style.setProperty('--text-primary', '#f1f5f9');
+            root.style.setProperty('--text-secondary', '#cbd5e1');
+            root.style.setProperty('--text-muted', '#94a3b8');
+            root.style.setProperty('--border-color', '#334155');
+        } else {
+            root.style.setProperty('--bg-primary', '#fafbfc');
+            root.style.setProperty('--bg-secondary', '#f3f4f6');
+            root.style.setProperty('--bg-card', '#ffffff');
+            root.style.setProperty('--text-primary', '#1f2937');
+            root.style.setProperty('--text-secondary', '#4b5563');
+            root.style.setProperty('--text-muted', '#9ca3af');
+            root.style.setProperty('--border-color', '#e5e7eb');
+        }
+    }
+
+    // Load saved theme on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        const icon = document.getElementById('theme-icon');
+        
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        if (savedTheme === 'dark') {
+            icon.classList.remove('bi-moon-fill');
+            icon.classList.add('bi-sun-fill');
+        }
+        
+        applyTheme(savedTheme);
+    });
+</script>
+</body>
+</html>

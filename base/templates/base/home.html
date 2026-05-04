@@ -65,39 +65,46 @@
 <section id="about" class="py-5">
     <div class="container">
         <div class="row g-4">
-            <div class="col-md-6">
+            <div class="col-md-12">
                 <div class="card h-100 border-0 shadow-sm rounded-4">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-3">
                             <div class="icon-box bg-primary bg-gradient rounded-3">
                                 <i class="bi bi-briefcase text-white fs-4"></i>
                             </div>
-                            <h4 class="ms-3 mb-0">Professional Experience</h4>
+                            <h4 class="ms-3 mb-0">Expériences Professionnelles</h4>
                         </div>
-                        <p class="text-muted">Full-stack projects using MEAN stack, cloud-native applications, and mobile development with React Native.</p>
-                        <div class="mt-3">
-                            <span class="badge bg-primary me-2 p-2">MEAN Stack</span>
-                            <span class="badge bg-info me-2 p-2">Cloud</span>
-                            <span class="badge bg-success p-2">React Native</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm rounded-4">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="icon-box bg-success bg-gradient rounded-3">
-                                <i class="bi bi-code-slash text-white fs-4"></i>
+
+                        <!-- Expérience 1 -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-primary">Développeuse MEAN Stack</h6>
+                            <p class="text-muted small mb-1"><strong>5DS · Stage</strong> | févr. 2025 - juil. 2025 (6 mois) | À distance</p>
+                            <p class="text-muted small">Contribution au développement d'une application web cloud native avec la stack MEAN. Conception et implémentation d'interfaces utilisateur avec Angular 17 et Bootstrap. Développement d'API RESTful avec Node.js et Express.js, et modélisation des données sur MongoDB.</p>
+                            <div class="mt-2">
+                                <span class="badge bg-primary me-1">Angular</span>
+                                <span class="badge bg-info me-1">Node.js</span>
+                                <span class="badge bg-success me-1">Express.js</span>
+                                <span class="badge bg-warning text-dark me-1">MongoDB</span>
+                                <span class="badge bg-secondary">Bootstrap</span>
                             </div>
-                            <h4 class="ms-3 mb-0">Tech Stack</h4>
                         </div>
-                        <p class="text-muted">Angular, React, Node.js, Python, Cybersecurity (CCNA), and Artificial Intelligence (NVIDIA certifications).</p>
-                        <div class="mt-3">
-                            <span class="badge bg-danger me-2 p-2">Angular</span>
-                            <span class="badge bg-warning text-dark me-2 p-2">React</span>
-                            <span class="badge bg-dark p-2">Python</span>
+
+                        <hr class="my-3">
+
+                        <!-- Expérience 2 -->
+                        <div class="mb-2">
+                            <h6 class="fw-bold text-primary">Développeuse Full Stack</h6>
+                            <p class="text-muted small mb-1"><strong>Reactit · Stage</strong> | févr. 2023 - mai 2023 (4 mois) | Gouvernorat Sousse, Tunisie · Sur site</p>
+                            <p class="text-muted small">Stage de fin d'études chez Reactit, participation à la conception et au développement d'une plateforme de suivi des campagnes publicitaires. Analyse des besoins via cahier des charges, conception de maquettes UI, développement de la plateforme web et gestion de la base de données. Développement d'une application mobile Android/iOS synchronisée avec la plateforme web pour un suivi en temps réel.</p>
+                            <div class="mt-2">
+                                <span class="badge bg-danger me-1">React.js</span>
+                                <span class="badge bg-info me-1">React Native</span>
+                                <span class="badge bg-success me-1">Express.js</span>
+                                <span class="badge bg-dark me-1">Node.js</span>
+                                <span class="badge bg-warning text-dark">MongoDB</span>
+                            </div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -108,11 +115,26 @@
 <!-- Projects Section -->
 <section id="projects" class="py-5">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-2">
             <h2 class="fw-bold"><i class="bi bi-folder-fill text-primary me-2"></i>My Projects</h2>
-            <a href="{% url 'project_create' %}" class="btn btn-primary btn-lg shadow-sm">
-                <i class="bi bi-plus-circle me-2"></i>Add Project
-            </a>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{% url 'sync_github_projects' %}" class="btn btn-outline-secondary btn-lg shadow-sm">
+                    <i class="bi bi-arrow-repeat me-2"></i>Sync GitHub
+                </a>
+                <a href="{% url 'project_create' %}" class="btn btn-primary btn-lg shadow-sm">
+                    <i class="bi bi-plus-circle me-2"></i>Add Project
+                </a>
+            </div>
         </div>
 
         <div class="row g-4">
@@ -135,14 +157,25 @@
                             </div>
                         </div>
                         <h5 class="card-title fw-bold mb-2">{{ project.title }}</h5>
-                        <p class="card-text text-muted small">{{ project.description|truncatewords:25 }}</p>
-                        <hr>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted"><i class="bi bi-stack me-1"></i>{{ project.technology }}</small>
+                        <p class="card-text text-muted small mb-3">
+                            {{ project.description|default:"No description available."|truncatewords:35 }}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <small class="text-muted"><i class="bi bi-stack me-1"></i>{{ project.technology|default:"Unknown" }}</small>
+                            {% if project.github_link %}
+                            <a href="{{ project.github_link }}" target="_blank" class="text-decoration-none small">
+                                <i class="bi bi-github me-1"></i>View repo
+                            </a>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="card-footer bg-transparent border-0 pt-0">
-                        <div class="d-flex gap-2">
+                        <div class="d-flex gap-2 flex-wrap">
+                            {% if project.github_link %}
+                            <a href="{{ project.github_link }}" target="_blank" class="btn btn-sm btn-outline-dark flex-grow-1">
+                                <i class="bi bi-github me-1"></i>Repo
+                            </a>
+                            {% endif %}
                             <a href="{% url 'project_update' project.id %}" class="btn btn-sm btn-outline-primary flex-grow-1">
                                 <i class="bi bi-pencil me-1"></i>Edit
                             </a>

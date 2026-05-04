@@ -7,4 +7,5 @@ urlpatterns=[
     path('create/', views.project_create, name='project_create'),
     path('update/<int:pk>/', views.project_update, name='project_update'),
     path('delete/<int:pk>/', views.project_delete, name='project_delete'),
+    path('sync-github/', views.sync_github_projects_view, name='sync_github_projects'),
 ]

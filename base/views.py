@@ -1,151 +1,160 @@
-import json
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
-
-from django.shortcuts import render, redirect
-from django.core.mail import send_mail
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from .models import Project, Category
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import Project, Experience
+import requests
 
+# ── helpers ───────────────────────────────────────────────────────────────────
+def is_admin(user):
+    return user.is_superuser or user.is_staff
 
-def home(request):
-    projects = Project.objects.all()
-    return render(request, 'base/home.html', {'projects': projects})
+# ── Auth ──────────────────────────────────────────────────────────────────────
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('admin_dashboard' if is_admin(request.user) else 'recruiter_home')
+    if request.method == 'POST':
+        user = authenticate(request, username=request.POST.get('username'), password=request.POST.get('password'))
+        if user:
+            login(request, user)
+            return redirect('admin_dashboard' if is_admin(user) else 'recruiter_home')
+        messages.error(request, 'Invalid credentials.')
+    return render(request, 'base/login.html')
 
+def logout_view(request):
+    logout(request)
+    return redirect('login')
 
-def get_github_repos(username):
-    url = f"https://api.github.com/users/{username}/repos?per_page=100&sort=updated"
-    request = Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    try:
-        with urlopen(request, timeout=10) as response:
-            return json.load(response)
-    except (HTTPError, URLError, ValueError) as error:
-        raise RuntimeError(f"Unable to fetch GitHub repositories: {error}")
+# ── Recruiter (read-only) ─────────────────────────────────────────────────────
+@login_required(login_url='login')
+def recruiter_home(request):
+    return render(request, 'base/recruiter_home.html', {
+        'projects': Project.objects.all(),
+        'experiences': Experience.objects.all(),
+    })
 
-
-def get_category_name(language):
-    if not language:
-        return "Other"
-    language = language.lower()
-    if language in {"python"}:
-        return "Python"
-    if language in {"javascript", "typescript", "php", "html", "css"}:
-        return "Web Development"
-    if language in {"java"}:
-        return "Mobile Development"
-    return "Other"
-
-
-def sync_github_projects():
-    repos = get_github_repos("chakhari-dotcom")
-    synced_titles = []
-
-    for repo in repos:
-        title = repo.get("name", "").strip()
-        if not title:
-            continue
-
-        description = repo.get("description") or ""
-        technology = repo.get("language") or "Unknown"
-        github_link = repo.get("html_url", "")
-        category_name = get_category_name(repo.get("language"))
-        category, _ = Category.objects.get_or_create(name=category_name)
-
-        Project.objects.update_or_create(
-            title=title,
-            defaults={
-                "description": description,
-                "technology": technology,
-                "category": category,
-                "github_link": github_link,
-            },
-        )
-        synced_titles.append(title)
-
-    Project.objects.exclude(title__in=synced_titles).delete()
-    return len(synced_titles)
-
-
-def sync_github_projects_view(request):
-    try:
-        count = sync_github_projects()
-        messages.success(request, f"Synced {count} GitHub project(s).")
-    except Exception as error:
-        messages.error(request, f"GitHub sync failed: {error}")
-    return redirect('home')
-
+# ── Contact ───────────────────────────────────────────────────────────────────
+@login_required(login_url='login')
 def contact(request):
     if request.method == 'POST':
         name = request.POST.get('name')
         email = request.POST.get('email')
-        subject = request.POST.get('subject')
+        subject = request.POST.get('subject', 'Portfolio Contact')
         message = request.POST.get('message')
-        company = request.POST.get('company', '')
-        
-       
-        email_subject = f"Portfolio Contact: {subject}"
-        email_message = f"""
-New message from your portfolio website!
-
-From: {name}
-Email: {email}
-Company: {company if company else 'Not specified'}
-
-Subject: {subject}
-
-Message:
-{message}
-"""
-        
-        
         try:
             send_mail(
-                email_subject,
-                email_message,
-                email,  
-                ['fatmaa.chakhari@gmail.com'],  
-                fail_silently=False,
+                subject=f'{subject} — from {name}',
+                message=f'From: {name} <{email}>\n\n{message}',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[settings.EMAIL_HOST_USER],
             )
-            messages.success(request, 'Thank you for your message! I will get back to you soon.')
+            messages.success(request, 'Message sent successfully!')
         except Exception as e:
-            print(f"Error sending email: {e}")
-            messages.error(request, 'Sorry for the inconvenience. Your message could not be sent at this time. Please try again later.')
-        
+            messages.error(request, f'Failed to send message: {e}')
         return redirect('contact')
-    
     return render(request, 'base/contact.html')
 
+# ── Admin: dashboard ──────────────────────────────────────────────────────────
+@login_required(login_url='login')
+@user_passes_test(is_admin, login_url='login')
+def admin_dashboard(request):
+    return render(request, 'base/admin_dashboard.html', {
+        'projects': Project.objects.all(),
+        'experiences': Experience.objects.all(),
+    })
+
+# ── Admin: project CRUD ───────────────────────────────────────────────────────
+@login_required(login_url='login')
+@user_passes_test(is_admin, login_url='login')
 def project_create(request):
     if request.method == 'POST':
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        technology = request.POST.get('technology')
-        category_id = request.POST.get('category')
-        category = Category.objects.get(id=category_id)
-        Project.objects.create(title=title, description=description, technology=technology, category=category)
-        return redirect('home')
-    categories = Category.objects.all()
-    return render(request, 'base/project_form.html', {'categories': categories, 'action': 'Créer'})
+        Project.objects.create(
+            title=request.POST.get('title'),
+            description=request.POST.get('description', ''),
+            category=request.POST.get('category', ''),
+            technology=request.POST.get('technology', ''),
+            github_link=request.POST.get('github_link', ''),
+        )
+        messages.success(request, 'Project created!')
+        return redirect('admin_dashboard')
+    return render(request, 'base/project_form.html', {'action': 'Create'})
 
+@login_required(login_url='login')
+@user_passes_test(is_admin, login_url='login')
 def project_update(request, pk):
-    project = Project.objects.get(id=pk)
+    project = get_object_or_404(Project, pk=pk)
     if request.method == 'POST':
         project.title = request.POST.get('title')
-        project.description = request.POST.get('description')
-        project.technology = request.POST.get('technology')
-        project.category = Category.objects.get(id=request.POST.get('category'))
+        project.description = request.POST.get('description', '')
+        project.category = request.POST.get('category', '')
+        project.technology = request.POST.get('technology', '')
+        project.github_link = request.POST.get('github_link', '')
         project.save()
-        return redirect('home')
-    categories = Category.objects.all()
-    return render(request, 'base/project_form.html', {'project': project, 'categories': categories, 'action': 'Modifier'})
+        messages.success(request, 'Project updated!')
+        return redirect('admin_dashboard')
+    return render(request, 'base/project_form.html', {'action': 'Update', 'project': project})
 
+@login_required(login_url='login')
+@user_passes_test(is_admin, login_url='login')
 def project_delete(request, pk):
-    project = Project.objects.get(id=pk)
+    project = get_object_or_404(Project, pk=pk)
     if request.method == 'POST':
         project.delete()
-        return redirect('home')
+        messages.success(request, 'Project deleted.')
+        return redirect('admin_dashboard')
     return render(request, 'base/project_confirm_delete.html', {'project': project})
 
+# ── Admin: sync GitHub ────────────────────────────────────────────────────────
+@login_required(login_url='login')
+@user_passes_test(is_admin, login_url='login')
+def sync_github_projects(request):
+    try:
+        response = requests.get('https://api.github.com/users/chakhari-dotcom/repos', timeout=10)
+        repos = response.json()
+        count = 0
+        for repo in repos:
+            if not repo.get('fork'):
+                obj, created = Project.objects.get_or_create(
+                    title=repo['name'],
+                    defaults={
+                        'description': repo.get('description') or '',
+                        'github_link': repo.get('html_url', ''),
+                        'category': 'Web Development',
+                        'technology': repo.get('language') or '',
+                    }
+                )
+                if created:
+                    count += 1
+        messages.success(request, f'Synced {count} new project(s) from GitHub.')
+    except Exception as e:
+        messages.error(request, f'GitHub sync failed: {e}')
+    return redirect('admin_dashboard')
 
+# ── Admin: experience ─────────────────────────────────────────────────────────
+@login_required(login_url='login')
+@user_passes_test(is_admin, login_url='login')
+def add_experience(request):
+    if request.method == 'POST':
+        Experience.objects.create(
+            title=request.POST.get('title'),
+            company=request.POST.get('company'),
+            location=request.POST.get('location', ''),
+            start_date=request.POST.get('start_date'),
+            end_date=request.POST.get('end_date') or None,
+            description=request.POST.get('description', ''),
+            is_current=request.POST.get('is_current') == 'on',
+        )
+        messages.success(request, 'Experience added!')
+        return redirect('admin_dashboard')
+    return render(request, 'base/experience_form.html')
 
-
+@login_required(login_url='login')
+@user_passes_test(is_admin, login_url='login')
+def delete_experience(request, pk):
+    exp = get_object_or_404(Experience, pk=pk)
+    if request.method == 'POST':
+        exp.delete()
+        messages.success(request, 'Experience deleted.')
+    return redirect('admin_dashboard')

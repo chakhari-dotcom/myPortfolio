@@ -11,21 +11,50 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css">
 </head>
 <body>
+
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-gradient">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="{% url 'home' %}"><i class="bi bi-code-slash me-2"></i>Fatma Chakhari</a>
+        <a class="navbar-brand fw-bold"
+           href="{% if user.is_staff %}{% url 'admin_dashboard' %}{% else %}{% url 'recruiter_home' %}{% endif %}">
+            <i class="bi bi-code-slash me-2"></i>Fatma Chakhari
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#projects">Projects</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#about">About</a></li>
-                <li class="nav-item"><a class="nav-link active" href="{% url 'contact' %}">Contact</a></li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="{% if user.is_staff %}{% url 'admin_dashboard' %}{% else %}{% url 'recruiter_home' %}{% endif %}">
+                        Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="{% if user.is_staff %}{% url 'admin_dashboard' %}{% else %}{% url 'recruiter_home' %}{% endif %}#projects">
+                        Projects
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="{% if user.is_staff %}{% url 'admin_dashboard' %}{% else %}{% url 'recruiter_home' %}{% endif %}#experiences">
+                        Experiences
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="{% url 'contact' %}">Contact</a>
+                </li>
             </ul>
-            <button class="theme-toggle ms-3" onclick="toggleTheme()" title="Toggle Dark Mode">
+            {% if user.is_staff %}
+            <span class="badge bg-warning text-dark ms-3 me-2">Admin</span>
+            {% else %}
+            <span class="badge bg-success ms-3 me-2">Recruiter View</span>
+            {% endif %}
+            <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm ms-1 me-2">
+                <i class="bi bi-box-arrow-right me-1"></i>Logout
+            </a>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
                 <i class="bi bi-moon-fill" id="theme-icon"></i>
             </button>
         </div>
@@ -41,17 +70,18 @@
                     <h2 class="fw-bold"><i class="bi bi-envelope-fill text-primary me-2"></i>Get In Touch</h2>
                     <p class="text-muted">Have a question or want to work together? Fill out the form below and I'll get back to you as soon as possible.</p>
                 </div>
-                
+
                 <div class="card border-0 shadow-sm rounded-4">
                     <div class="card-body p-4 p-lg-5">
                         {% if messages %}
-                        <div class="alert alert-success" role="alert">
-                            {% for message in messages %}
-                            <i class="bi bi-check-circle me-2"></i>{{ message }}
-                            {% endfor %}
+                        {% for message in messages %}
+                        <div class="alert alert-{% if 'successfully' in message.message %}success{% else %}danger{% endif %} alert-dismissible fade show" role="alert">
+                            <i class="bi bi-{% if 'successfully' in message.message %}check-circle{% else %}exclamation-circle{% endif %} me-2"></i>{{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
+                        {% endfor %}
                         {% endif %}
-                        
+
                         <form method="post" action="{% url 'contact' %}">
                             {% csrf_token %}
                             <div class="row g-3">
@@ -99,8 +129,8 @@
                         </form>
                     </div>
                 </div>
-                
-                <!-- Alternative Contact Info -->
+
+                <!-- Contact Info Cards -->
                 <div class="row g-4 mt-4">
                     <div class="col-md-4">
                         <div class="card border-0 shadow-sm rounded-4 h-100 text-center">
@@ -109,7 +139,9 @@
                                     <i class="bi bi-envelope text-white fs-4"></i>
                                 </div>
                                 <h5 class="fw-bold">Email</h5>
-                                <p class="text-muted mb-0"><a href="https://mail.google.com/mail/u/2/#inbox" target="_blank" class="text-decoration-none">fatmaa.chakhari@gmail.com</a></p>
+                                <p class="text-muted mb-0">
+                                    <a href="mailto:fatmaa.chakhari@gmail.com" class="text-decoration-none">fatmaa.chakhari@gmail.com</a>
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -120,7 +152,9 @@
                                     <i class="bi bi-linkedin text-white fs-4"></i>
                                 </div>
                                 <h5 class="fw-bold">LinkedIn</h5>
-                                <p class="text-muted mb-0"><a href="https://www.linkedin.com/in/fatma-chakhari" target="_blank" class="text-decoration-none">fatma-chakhari</a></p>
+                                <p class="text-muted mb-0">
+                                    <a href="https://www.linkedin.com/in/fatma-chakhari" target="_blank" class="text-decoration-none">fatma-chakhari</a>
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -131,14 +165,17 @@
                                     <i class="bi bi-github text-white fs-4"></i>
                                 </div>
                                 <h5 class="fw-bold">GitHub</h5>
-                                <p class="text-muted mb-0"><a href="https://github.com/chakhari-dotcom" target="_blank" class="text-decoration-none">chakhari-dotcom</a></p>
+                                <p class="text-muted mb-0">
+                                    <a href="https://github.com/chakhari-dotcom" target="_blank" class="text-decoration-none">chakhari-dotcom</a>
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="text-center mt-5">
-                    <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                    <a href="{% if user.is_staff %}{% url 'admin_dashboard' %}{% else %}{% url 'recruiter_home' %}{% endif %}"
+                       class="btn btn-outline-secondary">
                         <i class="bi bi-arrow-left me-2"></i>Back to Home
                     </a>
                 </div>
@@ -157,15 +194,9 @@
             </div>
             <div class="col-md-6 text-md-end">
                 <div class="d-inline-block">
-                    <a href="https://github.com/chakhari-dotcom" target="_blank" class="btn btn-outline-light rounded-circle btn-social">
-                        <i class="bi bi-github"></i>
-                    </a>
-                    <a href="https://www.linkedin.com/in/fatma-chakhari" target="_blank" class="btn btn-outline-light rounded-circle btn-social">
-                        <i class="bi bi-linkedin"></i>
-                    </a>
-                    <a href="https://x.com/FatmaChakhari" target="_blank" class="btn btn-outline-light rounded-circle btn-social">
-                        <i class="bi bi-twitter-x"></i>
-                    </a>
+                    <a href="https://github.com/chakhari-dotcom" target="_blank" class="btn btn-outline-light rounded-circle btn-social"><i class="bi bi-github"></i></a>
+                    <a href="https://www.linkedin.com/in/fatma-chakhari" target="_blank" class="btn btn-outline-light rounded-circle btn-social"><i class="bi bi-linkedin"></i></a>
+                    <a href="https://x.com/FatmaChakhari" target="_blank" class="btn btn-outline-light rounded-circle btn-social"><i class="bi bi-twitter-x"></i></a>
                 </div>
                 <p class="small text-muted mt-2 mb-0">&copy; 2026 Fatma Chakhari. All rights reserved.</p>
             </div>
@@ -175,61 +206,34 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Theme Toggle Functionality
     function toggleTheme() {
         const html = document.documentElement;
         const icon = document.getElementById('theme-icon');
-        const currentTheme = html.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        
+        const newTheme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         html.setAttribute('data-theme', newTheme);
-        
-        if (newTheme === 'dark') {
-            icon.classList.remove('bi-moon-fill');
-            icon.classList.add('bi-sun-fill');
-        } else {
-            icon.classList.remove('bi-sun-fill');
-            icon.classList.add('bi-moon-fill');
-        }
-        
+        icon.className = newTheme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
         localStorage.setItem('theme', newTheme);
         applyTheme(newTheme);
     }
-
     function applyTheme(theme) {
-        const root = document.documentElement;
+        const r = document.documentElement;
         if (theme === 'dark') {
-            root.style.setProperty('--bg-primary', '#0f172a');
-            root.style.setProperty('--bg-secondary', '#1e293b');
-            root.style.setProperty('--bg-card', '#1e293b');
-            root.style.setProperty('--text-primary', '#f1f5f9');
-            root.style.setProperty('--text-secondary', '#cbd5e1');
-            root.style.setProperty('--text-muted', '#94a3b8');
-            root.style.setProperty('--border-color', '#334155');
+            r.style.setProperty('--bg-primary','#0f172a'); r.style.setProperty('--bg-secondary','#1e293b');
+            r.style.setProperty('--bg-card','#1e293b'); r.style.setProperty('--text-primary','#f1f5f9');
+            r.style.setProperty('--text-secondary','#cbd5e1'); r.style.setProperty('--text-muted','#94a3b8');
+            r.style.setProperty('--border-color','#334155');
         } else {
-            root.style.setProperty('--bg-primary', '#fafbfc');
-            root.style.setProperty('--bg-secondary', '#f3f4f6');
-            root.style.setProperty('--bg-card', '#ffffff');
-            root.style.setProperty('--text-primary', '#1f2937');
-            root.style.setProperty('--text-secondary', '#4b5563');
-            root.style.setProperty('--text-muted', '#9ca3af');
-            root.style.setProperty('--border-color', '#e5e7eb');
+            r.style.setProperty('--bg-primary','#fafbfc'); r.style.setProperty('--bg-secondary','#f3f4f6');
+            r.style.setProperty('--bg-card','#ffffff'); r.style.setProperty('--text-primary','#1f2937');
+            r.style.setProperty('--text-secondary','#4b5563'); r.style.setProperty('--text-muted','#9ca3af');
+            r.style.setProperty('--border-color','#e5e7eb');
         }
     }
-
-    // Load saved theme on page load
     document.addEventListener('DOMContentLoaded', function() {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        const icon = document.getElementById('theme-icon');
-        
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        
-        if (savedTheme === 'dark') {
-            icon.classList.remove('bi-moon-fill');
-            icon.classList.add('bi-sun-fill');
-        }
-        
-        applyTheme(savedTheme);
+        const saved = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', saved);
+        document.getElementById('theme-icon').className = saved === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+        applyTheme(saved);
     });
 </script>
 </body>
